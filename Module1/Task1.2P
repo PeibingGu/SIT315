@@ -1,0 +1,44 @@
+/*
+SIT315 Task M1.T2P code file
+*/
+
+// C++ code
+//
+int reading = 0;
+int ledPin = 12;
+int sensorPin = 2;
+
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(sensorPin, INPUT);
+  
+  pinMode(ledPin, OUTPUT);
+  
+  //interrupt
+  attachInterrupt(digitalPinToInterrupt(sensorPin), detect_motion, CHANGE);
+}
+
+void loop()
+{
+  delay(100); // Wait for 100 millisecond(s)
+}
+
+void detect_motion()
+{
+  //read sensor INPUT
+  reading = digitalRead(sensorPin);
+  
+  //Motion detected
+  if (reading == HIGH)
+  {
+    digitalWrite(ledPin, HIGH); //turn on led
+    Serial.println("Motion detected!");
+  } else {
+    //Motion ended
+    digitalWrite(ledPin, LOW); //turn off led
+    Serial.println("Motion ended!");
+  }
+  
+}
