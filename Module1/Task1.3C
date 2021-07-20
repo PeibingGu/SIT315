@@ -1,0 +1,117 @@
+/*
+SIT315 Module 1 task 1.3C
+*/
+
+// C++ code
+//
+
+int reading = 0;
+int soundReading = 0;
+
+int ledPin = 13;
+int led2Pin = 12;
+int sensorPin = 2;
+int soundSensorPin = 3;
+
+const uint16_t t1_load = 0;
+const uint16_t t1_comp = 31250;
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(sensorPin, INPUT);
+  
+  pinMode(ledPin, OUTPUT);
+  pinMode(led2Pin, OUTPUT);
+  
+  cli();
+  
+  //Set CTC mode
+  TCCR1B &= ~(1 << WGM13);
+  TCCR1B |= (1 << WGM12);
+  
+  //Set to prescaler of 256
+  TCCR1B |= (1 << CS12);
+  TCCR1B &= ~(1 << CS11);
+  TCCR1B &= ~(1 << CS10);
+  
+  //Reset Timer1 and set compare value
+  TCNT1 = t1_load;
+  OCR1A = t1_comp;
+  
+  //Enable Timer1 compare interrupt
+  TIMSK1 = (1 << OCIE1A);
+  
+  //Enable global interrupts
+  sei();
+  
+  //Interrupt for motion sensor
+  attachInterrupt(digitalPinToInterrupt(sensorPin), detect_motion, CHANGE);
+
+}
+
+void loop()
+{
+  delay(100); // Wait for 100 millisecond(s)
+}
+
+void detect_motion()
+{
+  //read sensor INPUT
+  reading = digitalRead(sensorPin);
+  
+  //Motion detected
+  if (reading == HIGH)
+  {
+    digitalWrite(ledPin, HIGH); //turn on led
+    Serial.println("Motion detected!");
+  } else {
+    //Motion ended
+    digitalWrite(ledPin, LOW); //turn off led
+    Serial.println("Motion ended!");
+  }
+}
+
+void timer_trigger()
+{
+	  // establish variables for duration of the ping, and the distance result
+  // in inches :
+  
+  //Serial.println("Hhh");
+  
+  long duration, inches;
+
+  // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
+  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+  pinMode(soundSensorPin, OUTPUT);
+  digitalWrite(soundSensorPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(soundSensorPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(soundSensorPin, LOW);
+
+  // The same pin is used to read the signal from the PING))): a HIGH pulse
+  // whose duration is the time (in microseconds) from the sending of the ping
+  // to the reception of its echo off of an object.
+  pinMode(soundSensorPin, INPUT);
+  duration = pulseIn(soundSensorPin, HIGH);
+
+  // convert the time into a distance
+  inches = duration / 74 / 2;
+
+  if (inches <= 100)
+  {
+    digitalWrite(led2Pin, HIGH); //turn on led
+    Serial.print("Object detected by the ultrasound! (");
+    Serial.print(inches);
+    Serial.println("in)");
+  } else 
+  {
+  	digitalWrite(led2Pin, LOW); //turn off led
+  }
+  
+}
+ISR(TIMER1_COMPA_vect)
+{
+  timer_trigger();
+}
