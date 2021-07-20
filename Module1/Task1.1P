@@ -1,3 +1,52 @@
 /*
 created new file and named it Task1.1P
 */
+// C++ code
+//
+int temperature = 0;
+int redLedPin = 11;
+int blueLedPin = 10;
+int greenLedPin = 9;
+int tmpSensorPin = A0;
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(tmpSensorPin, INPUT);
+  
+  pinMode(redLedPin, OUTPUT);
+  pinMode(blueLedPin, OUTPUT);
+  pinMode(greenLedPin, OUTPUT);
+}
+
+void loop()
+{
+  temperature = -40 + 0.488155 * (analogRead(tmpSensorPin) - 20);
+  
+  //if temperature is over 50 celsius, change LED to red
+  if (temperature >= 50)
+  {
+    analogWrite(redLedPin, 255);
+    analogWrite(blueLedPin, 0);
+    analogWrite(greenLedPin, 0);
+    Serial.print(temperature);
+    Serial.println(" C: red");
+  } else if (temperature >= 30)
+  {
+    //if temperature is between 30 and 50 celsius, change LED to blue
+    analogWrite(redLedPin, 0);
+    analogWrite(blueLedPin, 255);
+    analogWrite(greenLedPin, 0);
+    Serial.print(temperature);
+    Serial.println(" C: blue");
+  } else if (temperature <=10)
+  {
+    //if temperature is below 10 celsius, change LED to green
+    analogWrite(redLedPin, 0);
+    analogWrite(blueLedPin, 0);
+    analogWrite(greenLedPin, 255);
+    Serial.print(temperature);
+    Serial.println(" C: green");
+  } 
+  delay(100); // Wait for 100 millisecond(s)
+}
