@@ -1,0 +1,115 @@
+/*
+SIT315 Module1 Task 1.4D
+*/
+// C++ code
+//
+
+int led1Pin = 4;
+int led2Pin = 5;
+int led3Pin = 6;
+int led4Pin = 7;
+
+int sensor1Pin = 8;
+int sensor2Pin = 9;
+int sensor3Pin = 10;
+int sensor4Pin = 11;
+
+int state1 = LOW;
+int state2 = LOW;
+int state3 = LOW;
+int state4 = LOW;
+
+const uint16_t t1_load = 0;
+const uint16_t t1_comp = 31250;
+
+void setup()
+{
+  Serial.begin(9600);
+  
+  pinMode(led1Pin, OUTPUT);
+  pinMode(led2Pin, OUTPUT);
+  pinMode(led3Pin, OUTPUT);
+  pinMode(led4Pin, OUTPUT);
+  
+  //PCINT0 - enable group 0: D8-11 inclusive pins
+  PCICR |= B00000001; //Enable PCMSK0 (group 0 : PCINT0 to PCINT7)
+  PCMSK0 |= B00001111; //D8, D9, D10, D11 will trigger interrupt
+  
+  
+  //Set CTC mode
+  TCCR1B &= ~(1 << WGM13);
+  TCCR1B |= (1 << WGM12);
+  
+  //Set to prescaler of 256
+  TCCR1B |= (1 << CS12);
+  TCCR1B &= ~(1 << CS11);
+  TCCR1B &= ~(1 << CS10);
+  
+  //Reset Timer1 and set compare value
+  TCNT1 = t1_load;
+  OCR1A = t1_comp;
+  
+  //Enable Timer1 compare interrupt
+  TIMSK1 = (1 << OCIE1A);
+  
+  //Enable global interrupts
+  sei();
+  
+}
+
+void loop()
+{
+  delay(100); // Wait for 100 millisecond(s)
+}
+
+ISR(PCINT0_vect) 
+{
+  //read sensors then write them to global variables
+  state1 = digitalRead(sensor1Pin);
+  state2 = digitalRead(sensor2Pin);
+  state3 = digitalRead(sensor3Pin);
+  state4 = digitalRead(sensor4Pin);
+}
+
+
+void timer_trigger()
+{
+  //message to Serial
+  if (state1 == HIGH)
+  {
+    Serial.println("Sensor 1 detected");
+  } 
+  //turn on/off led corresponding
+  digitalWrite(led1Pin, state1);
+  
+  //message to Serial
+  if (state2 == HIGH)
+  {
+    Serial.println("Sensor 2 detected");
+  } 
+  //turn on/off led corresponding
+  digitalWrite(led2Pin, state2);
+  
+  //message to Serial
+  if (state3 == HIGH)
+  {
+    Serial.println("Sensor 3 detected");
+  } 
+  //turn on/off led corresponding
+  digitalWrite(led3Pin, state3);
+  
+  //message to Serial
+  if (state4 == HIGH)
+  {
+    Serial.println("Sensor 4 detected");
+  } 
+  //turn on/off led corresponding
+  digitalWrite(led4Pin, state4);
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+  //call function 
+  timer_trigger();
+}
+
